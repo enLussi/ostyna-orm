@@ -7,5 +7,5 @@ ConsoleUtils::add_commands([
   'option' => [
     'new', 'modify'
   ],
-  'method' => 'Ostyna\\Component\\Utils\\Commands::Entity'
+  'method' => 'Ostyna\\ORM\\Commands\EntityCommand::execute'
 ]);
