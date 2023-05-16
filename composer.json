@@ -1,0 +1,13 @@
+{
+  "name": "ostyna/orm",
+  "description": "Lightweight PHP Framework Database ORM",
+  "autoload": {
+      "psr-4": {
+          "Ostyna\\ORM\\": "",
+          "Ostyna\\ORM\\Commands\\": "commands/"
+      }
+  },
+  "require": {
+      "ostyna/orm": "*"
+  }
+}
