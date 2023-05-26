@@ -16,19 +16,19 @@ class EntityCommand extends AbstractCommand {
     while (count($options) > 0) {
       switch($options[0]) {
         case 'new':
-          $options = $this->delete_same_category_options($options, ['modify, migrate']);
+          $options = $this->delete_same_category_options($options, ['modify, prepare']);
           $this->new_entity();
           $options = array_diff($options, ['new']);
           break;
         case 'modify':
-          $options = $this->delete_same_category_options($options, ['new, migrate']);
+          $options = $this->delete_same_category_options($options, ['new, prepare']);
           $this->modify_entity();
           $options = array_diff($options, ['modify']);
           break;
-        case 'migrate':
+        case 'prepare':
           $options = $this->delete_same_category_options($options, ['modify, new']);
-          $this->migrate_entity();
-          $options = array_diff($options, ['migrate']);
+          $this->prepare_entity();
+          $options = array_diff($options, ['prepare']);
           break;
         default:
           break;
@@ -160,7 +160,7 @@ class EntityCommand extends AbstractCommand {
 
   }
 
-  private function migrate_entity() {
+  private function prepare_entity() {
 
     // add created value in each entities to see if  
 
