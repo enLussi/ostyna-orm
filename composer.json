@@ -5,7 +5,8 @@
       "psr-4": {
           "Ostyna\\ORM\\": "",
           "Ostyna\\ORM\\Commands\\": "commands/",
-          "Ostyna\\ORM\\Migrations\\": "Migrations/"
+          "Ostyna\\ORM\\Migrations\\": "migrations/",
+          "Ostyna\\ORM\\Utils\\": "utils/"
       }
   },
   "require": {
