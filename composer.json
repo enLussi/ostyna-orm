@@ -4,7 +4,8 @@
   "autoload": {
       "psr-4": {
           "Ostyna\\ORM\\": "",
-          "Ostyna\\ORM\\Commands\\": "commands/"
+          "Ostyna\\ORM\\Commands\\": "commands/",
+          "Ostyna\\ORM\\Migrations\\": "Migrations/"
       }
   },
   "require": {

@@ -5,7 +5,7 @@ use Ostyna\Component\Utils\ConsoleUtils;
 ConsoleUtils::add_commands([
   'name' => 'entity',
   'option' => [
-    'new', 'modify'
+    'new', 'modify', 'prepare', 'migrate'
   ],
   'method' => 'Ostyna\\ORM\\Commands\EntityCommand::execute'
 ]);
