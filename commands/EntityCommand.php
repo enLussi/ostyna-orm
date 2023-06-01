@@ -20,7 +20,7 @@ class EntityCommand extends AbstractCommand {
       switch($options[0]) {
         case 'new':
           $options = $this->delete_same_category_options($options, ['modify', 'prepare', 'remove']);
-          $executing = $this->test();
+          $executing = $this->new_entity();
           $options = array_diff($options, ['new']);
           break;
         case 'modify':
