@@ -6,7 +6,8 @@
           "Ostyna\\ORM\\": "",
           "Ostyna\\ORM\\Commands\\": "commands/",
           "Ostyna\\ORM\\Migrations\\": "migrations/",
-          "Ostyna\\ORM\\Utils\\": "utils/"
+          "Ostyna\\ORM\\Utils\\": "utils/",
+          "Ostyna\\ORM\\Base\\": "Base/"
       }
   },
   "require": {
