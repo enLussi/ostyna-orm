@@ -3,7 +3,6 @@
 
 namespace Ostyna\ORM\Commands;
 
-use DateTimeImmutable;
 use Ostyna\Component\Commands\AbstractCommand;
 use Ostyna\Component\Utils\ConsoleUtils;
 use Ostyna\Component\Utils\CoreUtils;

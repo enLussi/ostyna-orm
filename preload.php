@@ -9,3 +9,11 @@ ConsoleUtils::add_commands([
   ],
   'method' => 'Ostyna\\ORM\\Commands\EntityCommand::execute'
 ]);
+
+ConsoleUtils::add_commands([
+  'name' => 'supply',
+  'option' => [
+    'unique'
+  ],
+  'method' => 'Ostyna\ORM\Commands\InsertCommand::execute'
+]);
