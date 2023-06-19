@@ -215,24 +215,7 @@ class EntityCommand extends AbstractCommand {
     $sql = "\t\tDatabaseUtils::sql(\n\t\t\t'" . implode("\n\t\t\t", $sql_commands) . "'\n\t\t);\n";
 
     // On crée le squelette de la classe
-    $file_content = <<<PHP
-    <?php
-
-    namespace Migrations;
-
-    use Ostyna\ORM\Migrations\AbstractMigrations;
-    use Ostyna\ORM\Utils\DatabaseUtils;
-
-    final class $class_name extends AbstractMigrations
-    {
-    \tpublic function upgrade(): void{
-    $sql\t} 
-
-    public function downgrade(): void{}
-      
-    }
-    ?>
-    PHP;
+    $file_content = $this->generate_by_skeleton('migrations.skl.php', ['sql' => $sql, 'class' => $class_name]);
 
     // Informe l'utilisateur que le fichier de migrations a été crée avec
     // la référence $class_name (MV_"date")
