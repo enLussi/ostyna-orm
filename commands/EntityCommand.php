@@ -42,9 +42,11 @@ class EntityCommand extends AbstractCommand {
           $options = array_diff($options, ['migrate']);
           break;
         case 'generate':
-          $options = $this->delete_same_category_options($options, ['modify', 'new', 'prepare', 'migrate', 'remove']);
-          $executing = $this->class_entity('Test');
-          $options = array_diff($options, ['generate']);
+          // $options = $this->delete_same_category_options($options, ['modify', 'new', 'prepare', 'migrate', 'remove']);
+          // $executing = $this->class_entity('Test');
+          // $options = array_diff($options, ['generate']);
+          $this->test();
+          $executing = false;
           break;
         default:
           break;
@@ -148,12 +150,23 @@ class EntityCommand extends AbstractCommand {
       if(!isset($tables[strtolower($key)])) {
         $sql_command = "CREATE TABLE $key (";
         foreach($entity as $index => $property) {
+          if(isset($property['RelatedTo']) && strlen($property['RelatedTo']) > 0) {
+            $f = "$property[Field]_id";
+          } else {
+            $f = $property['Field'];
+          }
+          $t = $property['Type'];
           $n = $property['Null'] === "YES" ? "" : " NOT NULL";
           $d = is_null($property['Default']) ? "" : " DEFAULT $property[Default]";
           $k = $property['Key'] === "UNI" ? " UNIQUE" : "";
           $k = $property['Key'] === "PRI" ? " PRIMARY KEY" : "";
           $e = " ".strtoupper($property['Extra']);
-          $sql_command .= ($index !== 0 ? ", " : "") . "$property[Field] $property[Type]$n$d$k$e";
+          $sql_command .= ($index !== 0 ? ", " : "") . "$f $t$n$d$k$e";
+
+          if(isset($property['RelatedTo']) && strlen($property['RelatedTo']) > 0) {
+            $sql_command .= ", FOREIGN KEY ($f) REFERENCES $property[RelatedTo](id) ON DELETE CASCADE";
+          }
+          
         }
         $sql_commands[] = $sql_command.");";
       } 
@@ -309,30 +322,13 @@ class EntityCommand extends AbstractCommand {
       
     }
 
-    $file_content = <<<PHP
-    <?php
-
-    namespace App\Entity;
-
-    use Ostyna\ORM\Base\BaseEntity;
-    use Ostyna\ORM\Utils\DatabaseUtils;
-    $use
-
-    class $name extends BaseEntity{
-
-    $attributes
-
-      public function __construct(?int \$identifier){
-        if(!is_null(\$identifier) && is_int(\$identifier)) {
-          \$entity = DatabaseUtils::get_entity(\$identifier);
-    $affectation
-        }
-      }
-
-    $methods
-
-    }
-    PHP;
+    $file_content = $this->generate_by_skeleton('migrations.skl.php', [
+      'use' => $use, 
+      'name' => $name,
+      'attributes' => $attributes,
+      'affectation' => $affectation,
+      'methods' => $methods
+    ]);
 
     ConsoleUtils::write_in_file('/src/Entity/'.$file_name, "Created Reference: $name", $file_content);
     return true;
@@ -428,6 +424,7 @@ class EntityCommand extends AbstractCommand {
       $length = 0;
       $null = "";
       $relation = "";
+      $relatedTo = "";
       $default = null;
 
       // On récupère le nom de chaque propriétés déjà existante
@@ -476,10 +473,7 @@ class EntityCommand extends AbstractCommand {
           "\n\t*\e[93m BINARY\e[39m" .
           "\n" .
           "\n\e[92mAssociations\e[39m" .
-          "\n\t*\e[93m MANYTOONE\e[39m" .
-          "\n\t*\e[93m ONETOMANY\e[39m" .
-          "\n\t*\e[93m ONETOONE\e[39m" .
-          "\n\t*\e[93m MANYTOMANY\e[39m"
+          "\n\t*\e[93m relation (MANYTOONE ou ONETOONE)\e[39m"
           ;
 
 
@@ -487,7 +481,7 @@ class EntityCommand extends AbstractCommand {
         // et on la formate en uppercase
         $type = ConsoleUtils::prompt_response("Type de l'entrée", function (string $response){
           if(!in_array(strtoupper($response), ['INT', 'SMALLINT', 'BIGINT', 'TINYINT', 'FLOAT', 'DOUBLE', 'VARCHAR', 'TEXT', 'DATE',
-          'TIME', 'DATETIME', 'TIMESTAMP', 'BOOL', 'BLOB', 'BINARY', 'MANYTOONE', 'ONETOMANY', 'ONETOONE', 'MANYTOMANY']))
+          'TIME', 'DATETIME', 'TIMESTAMP', 'BOOL', 'BLOB', 'BINARY', 'RELATION']))
           {
             return false;
           }
@@ -511,9 +505,9 @@ class EntityCommand extends AbstractCommand {
         // Si c'est une relation alors on demande avec quelle entité la relation doit être lié
         // Sinon si c'est un varchar on demande la taille de la propiété et on demande si la propriété peut être null  
         // et si elle a une valeur par défaut
-        if(in_array(strtoupper($type), ['MANYTOONE', 'ONETOMANY', 'ONETOONE', 'MANYTOMANY'])){
-          $relation = ConsoleUtils::prompt_response("Avec quelle entité la relation doit être liée", function (string $response) {
-            if(!array_key_exists(strtolower($response), json_decode(file_get_contents(CoreUtils::get_project_root()."/migrations/entities.json"), true))){
+        if(strtoupper($type) === 'RELATION'){
+          $relatedTo = ConsoleUtils::prompt_response("Avec quelle entité la relation doit être liée", function (string $response) {
+            if(!array_key_exists($response, json_decode(file_get_contents(CoreUtils::get_project_root()."/migrations/entities.json"), true))){
               return false;
             }
             return true;
@@ -544,6 +538,11 @@ class EntityCommand extends AbstractCommand {
           $null = in_array($null, ['oui', 'yes']) ? true : false;
         }
 
+        
+        if($type === 'RELATION') {
+          $relation = 'MUL';
+          $type = "INT(11)";
+        } 
         // On ajoute cette nouvelle propriété au tableau
         $properties[] = [
           'Field' => $name,
@@ -551,7 +550,8 @@ class EntityCommand extends AbstractCommand {
           'Null' => $null ? "YES" : "NO",
           'Key' => $relation,
           'Default' => $default,
-          'Extra' => ""
+          'Extra' => "",
+          'RelatedTo' => $relatedTo
         ];
       }
     }while(strlen($name) > 0);
@@ -569,9 +569,9 @@ class EntityCommand extends AbstractCommand {
         array_push($properties_names, $p['Field']);
       }
   
-      $name = ConsoleUtils::prompt_response("Nom de la nouvelle propriété", function (string $response, $data){
+      $name = ConsoleUtils::prompt_response("Nom de la propriété à supprimer", function (string $response, $data){
         if(strlen($response) === 0) return true;
-        if(strlen($response) <= 2) return false;
+        if(strlen($response) < 2) return false;
         if(!in_array($response, $data)) return false;
         return true; 
       }, "appuyer sur entrée pour arréter la suppression de propriété.", "", 
@@ -658,6 +658,11 @@ class EntityCommand extends AbstractCommand {
 
     return $php_type;
     
+  }
+
+  private function test() {
+    // var_dump(DatabaseUtils::sql("SHOW TABLES", respond: true));
+    var_dump(DatabaseUtils::sql("DESCRIBE content", respond: true));
   }
 
 }
