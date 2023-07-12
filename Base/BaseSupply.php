@@ -14,12 +14,17 @@ abstract class BaseSupply {
     
     foreach($insertions as $column => $insertion) {
       $keys .= "$column, ";
+      if(is_array($insertion)) {
+        $insertion = json_encode($insertion);
+      }
       $values .= "'$insertion', ";
     }
 
     $keys = rtrim($keys, ', ');
     $values = rtrim($values, ', ');
-    DatabaseUtils::sql("INSERT INTO $table ($keys) VALUES ($values);");
+    $row_id = DatabaseUtils::sql("INSERT INTO $table ($keys) VALUES ($values);", respond: true);
+
+    return $row_id;
 
   }
 }

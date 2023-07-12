@@ -62,11 +62,17 @@ class DatabaseUtils {
   }
 
   public static function execute_request(PDOStatement $stmt) {
-    $stmt->execute();
+    try {
+      $stmt->execute();
+    }catch (PDOException $pdoe) {
+      echo $pdoe->getMessage();
+    }
     return $stmt->fetchAll();
   }
 
   public static function sql(string $query, array $params = [], ?array $options = null, bool $respond = false) {
+
+    $insert_query = (substr($query, 0, 6) === 'INSERT');
 
     try {
       $pdo = self::get_PDO($options);
@@ -77,8 +83,10 @@ class DatabaseUtils {
           $stmt->bindParam(":$key", $param);
         }
         $stmt->execute();
-        if($respond) {
+        if($respond && !$insert_query) {
           return $stmt->fetchAll();
+        } elseif ($respond && $insert_query) {
+          return $pdo->lastInsertId();
         }
       }
     } catch (PDOException $pdoe) {
@@ -87,10 +95,14 @@ class DatabaseUtils {
     
   }
 
-  public static function get_entity(int $id, ) {
-    self::sql("SELECT * FROM WHERE id = :id", [
+  public static function get_entity(int $id, string $table) {
+    $entity = self::sql("SELECT * FROM $table WHERE id = :id", [
       "id" => $id
     ]);
+    if( count($entity) > 0 ) {
+      return $entity[0];
+    }
+    return null;
   }
 
 }

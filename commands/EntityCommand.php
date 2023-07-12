@@ -42,11 +42,9 @@ class EntityCommand extends AbstractCommand {
           $options = array_diff($options, ['migrate']);
           break;
         case 'generate':
-          // $options = $this->delete_same_category_options($options, ['modify', 'new', 'prepare', 'migrate', 'remove']);
-          // $executing = $this->class_entity('Test');
-          // $options = array_diff($options, ['generate']);
-          $this->test();
-          $executing = false;
+          $options = $this->delete_same_category_options($options, ['modify', 'new', 'prepare', 'migrate', 'remove']);
+          $executing = $this->class_entity('User');
+          $options = array_diff($options, ['generate']);
           break;
         default:
           break;
@@ -284,6 +282,7 @@ class EntityCommand extends AbstractCommand {
     $properties = json_decode(file_get_contents(CoreUtils::get_project_root()."/migrations/entities.json"), true)[$name];
 
     $file_name = ucfirst($name).".php";
+    $table_name = strtolower($name);
 
     $attributes = "";
     $variables = [];
@@ -322,9 +321,10 @@ class EntityCommand extends AbstractCommand {
       
     }
 
-    $file_content = $this->generate_by_skeleton('migrations.skl.php', [
+    $file_content = $this->generate_by_skeleton('class.skl.php', [
       'use' => $use, 
       'name' => $name,
+      'table' => $table_name,
       'attributes' => $attributes,
       'affectation' => $affectation,
       'methods' => $methods
