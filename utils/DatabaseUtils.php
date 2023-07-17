@@ -97,10 +97,18 @@ class DatabaseUtils {
 
   public static function get_entity(int $id, string $table) {
     $entity = self::sql("SELECT * FROM $table WHERE id = :id", [
-      "id" => $id
-    ]);
-    if( count($entity) > 0 ) {
+      "id" => strval($id)
+    ], respond: true);
+    if( !is_null($entity) && count($entity) > 0 ) {
       return $entity[0];
+    }
+    return null;
+  }
+
+  public static function get_entities(string $table) {
+    $entities = self::sql("SELECT * FROM $table", respond: true);
+    if( !is_null($entities) && count($entities) > 0 ) {
+      return $entities;
     }
     return null;
   }

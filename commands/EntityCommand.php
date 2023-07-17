@@ -15,40 +15,51 @@ class EntityCommand extends AbstractCommand {
   public function execute(array $options = []){
     
     $executing = true;
+
+
+
     while (count($options) > 0 && $executing) {
-      switch($options[0]) {
+
+      $option = $options[0];
+      $value = "";
+  
+      if(count(explode('=', $options[0])) == 2) {
+        $option = explode('=', $options[0])[0];
+        $value = explode('=', $options[0])[1];
+      }
+
+      switch($option) {
         case 'new':
           $options = $this->delete_same_category_options($options, ['modify', 'prepare', 'remove']);
           $executing = $this->new_entity();
-          $options = array_diff($options, ['new']);
           break;
         case 'modify':
           $options = $this->delete_same_category_options($options, ['new', 'prepare', 'remove', 'migrate']);
           $executing = $this->modify_entity();
-          $options = array_diff($options, ['modify']);
           break;
         case 'prepare':
           $options = $this->delete_same_category_options($options, ['modify', 'new', 'remove', 'migrate']);
           $executing = $this->prepare_entity();
-          $options = array_diff($options, ['prepare']);
           break;
         case 'remove':
           $options = $this->delete_same_category_options($options, ['modify', 'new', 'prepare', 'migrate']);
           $executing = $this->remove_entity();
-          $options = array_diff($options, ['remove']);
           break;
         case 'migrate':
           $executing = $this->migrate_entity();
-          $options = array_diff($options, ['migrate']);
           break;
         case 'generate':
           $options = $this->delete_same_category_options($options, ['modify', 'new', 'prepare', 'migrate', 'remove']);
-          $executing = $this->class_entity('User');
-          $options = array_diff($options, ['generate']);
+          if(strlen($value) > 0 ) {
+            $executing = $this->class_entity($value);
+          } else {
+            $executing = false;
+          }
           break;
         default:
           break;
       }
+      $options = array_diff($options, [$options[0]]);
     }
 
     if($executing) {
@@ -540,8 +551,23 @@ class EntityCommand extends AbstractCommand {
 
         
         if($type === 'RELATION') {
-          $relation = 'MUL';
+
+          $inherit = ConsoleUtils::prompt_response("Est ce une relation d'héritage ?", function (string $response) {
+            if(!in_array(strtolower($response), ['yes', 'no', 'oui', 'non'])) {
+              return false;
+            }
+            return true;
+          }, "", "", "Donnez une réponse valide.");
+
+          if(in_array($inherit, ['oui', 'yes'])) {
+            $relation = 'PRI';
+          } else {
+            $relation = 'MUL';
+          }
           $type = "INT(11)";
+        } 
+        if($type === 'BOOL') {
+          $type = "TINYINT(1)";
         } 
         // On ajoute cette nouvelle propriété au tableau
         $properties[] = [
@@ -661,8 +687,8 @@ class EntityCommand extends AbstractCommand {
   }
 
   private function test() {
-    // var_dump(DatabaseUtils::sql("SHOW TABLES", respond: true));
-    var_dump(DatabaseUtils::sql("DESCRIBE content", respond: true));
+    var_dump(DatabaseUtils::sql("SHOW TABLES", respond: true));
+    var_dump(DatabaseUtils::sql("DESCRIBE admin", respond: true));
   }
 
 }
